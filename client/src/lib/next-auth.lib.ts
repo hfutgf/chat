@@ -8,25 +8,40 @@ const options = {
   providers: [
     Credentials({
       credentials: {
+        username: { type: "text" },
         email: {
-          label: "Email",
           type: "text",
-          placeholder: "Enter email...",
         },
         password: {
-          label: "Password",
           type: "password",
-          placeholder: "Enter password...",
         },
       },
       async authorize(credentials) {
-        const { email, password } = credentials as IAuthFormState;
+        if (!credentials?.email || !credentials?.password) return null;
 
-        const data = await $fetch.get<IUser[]>(
-          `/users?filters[email][$eq]=${email}`
+        if (credentials?.username) {
+          const data = await $fetch.post<{ user: IUser; jwt: string }>(
+            `/auth/local/register`,
+            credentials
+          );
+
+          console.log("register", data);
+
+          return null;
+        }
+
+        const data = await $fetch.post<{ user: IUser; jwt: string }>(
+          `/auth/local/register`,
+          {
+            indentifier: credentials.email,
+            password: credentials.password,
+          }
         );
+        console.log("login", data);
 
-        console.log(data);
+        // const data = await $fetch.get<IUser[]>(
+        //   `/users?filters[email][$eq]=${credentials?.email}`
+        // );
 
         return null;
       },
